@@ -1,0 +1,232 @@
+{
+  "name": "AI-Powered Pizza Delivery Chatbot with Order Management and Status Tracking",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c9f74dea-d252-40a8-9b2d-247b16c8c506",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "98dbe41c-b796-4dcb-9677-f070b38118aa"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful pizza delivery chatbot assistant for a pizza restaurant.\n\nYour responsibilities:\n1. Answer customer questions about the pizza menu using the Get Menu Tool\n2. Take accurate pizza orders by capturing:\n   - Pizza type and size\n   - Quantity\n   - Customer name\n   - Delivery address\n   - Phone number\n   Then use the Create Order Tool to submit the order\n3. Provide real-time order status updates using the Check Order Status Tool when customers ask about their order\n\nBe friendly, conversational, and helpful. Always confirm order details before submitting. If you need information, ask the customer politely."
+        }
+      },
+      "id": "a85bed62-2304-41e1-9e37-a7c8ccb02bd9",
+      "name": "Pizza Chatbot Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        416,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "4b1b5a5a-21be-40a1-a1ff-d68be53f4002",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Retrieves the current pizza menu with available pizzas, sizes, and prices. Use this when customers ask about menu options, pizza types, or pricing.",
+        "url": "https://gist.githubusercontent.com/Pradeepkarra1/770ee94f47281b8c952b744d3889ea00/raw/a6bdb41b0c7e1bda15c63ab8e7eb73dc9213b441/pizza_menu.json",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "0276a4e0-fb90-488f-a954-2a449c171817",
+      "name": "Get Menu Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        480,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Creates a new pizza order. Required information: pizza_type, size, quantity, customer_name, delivery_address, phone_number. Returns order_id and estimated delivery time.",
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "pizza_type",
+              "value": "={{ $fromAI(\"pizza_type\", \"Type of pizza ordered\", \"string\") }}"
+            },
+            {
+              "name": "size",
+              "value": "={{ $fromAI(\"size\", \"Pizza size (small/medium/large)\", \"string\") }}"
+            },
+            {
+              "name": "quantity",
+              "value": "={{ $fromAI(\"quantity\", \"Number of pizzas\", \"number\") }}"
+            },
+            {
+              "name": "customer_name",
+              "value": "={{ $fromAI(\"customer_name\", \"Customer full name\", \"string\") }}"
+            },
+            {
+              "name": "delivery_address",
+              "value": "={{ $fromAI(\"delivery_address\", \"Full delivery address\", \"string\") }}"
+            },
+            {
+              "name": "phone_number",
+              "value": "={{ $fromAI(\"phone_number\", \"Customer phone number\", \"string\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7fc9c7ca-0b4d-42c7-86d1-c390d10cd2d8",
+      "name": "Create Order Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        608,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Checks the current status of an order. Requires order_id. Returns order status (preparing/out_for_delivery/delivered), estimated delivery time, and current location if available.",
+        "url": "https://httpbin.org/get",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "order_id",
+              "value": "={{ $fromAI(\"order_id\", \"The order ID to check status for\", \"string\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "40b67295-107a-445d-bd39-365dbcce8da1",
+      "name": "Check Order Status Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        736,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        192
+      ],
+      "id": "cc6044bf-d698-4879-945c-14739ad9c404",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CzYCZNmaZG4zoBxs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pizza Chatbot Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Pizza Chatbot Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Menu Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Pizza Chatbot Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Order Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Pizza Chatbot Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Order Status Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Pizza Chatbot Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Pizza Chatbot Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fee45251-b8df-46d9-8edf-070a80efe85f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "84c87004d5b104bc6b329a2ab99bc57b09605db8b64635cf69bddc541769079d"
+  },
+  "id": "Yg6zXTgXoEllWNa5",
+  "tags": []
+}
