@@ -160,6 +160,88 @@ Pizza Chatbot Agent (AI Orchestrator)
    - In n8n, click "Import from File"
    - Select the downloaded JSON file
 
+### Import & Run in n8n (Local)
+
+If you'd like to run the workflow locally (recommended for development), you can run n8n via Docker or npm.
+
+- Docker (quick start):
+
+```bash
+# Run n8n (no persistent DB) and expose the UI on http://localhost:5678
+docker run -it --rm \
+  -p 5678:5678 \
+  -e N8N_BASIC_AUTH_ACTIVE=true \
+  -e N8N_BASIC_AUTH_USER=user \
+  -e N8N_BASIC_AUTH_PASSWORD=password \
+  -v ~/.n8n:/home/node/.n8n \
+  n8nio/n8n
+```
+
+- npm (alternate):
+
+```bash
+npm install -g n8n
+n8n start
+```
+
+- Import the workflow file: use the bundled `workflow.json` (or the longer-named workflow JSON in the repo) via **Import from File** in the n8n UI.
+
+- Configure credentials:
+  - Open the `Google Gemini Chat Model` node
+  - Create a new Google Gemini/PaLM credential and paste your API key
+
+- Activate & test the workflow:
+  - Toggle the workflow to **Active**
+  - Open the chat interface at the bottom of the workflow editor and send a message
+
+### Quick Local Tool Tests (without n8n)
+
+Small edit to trigger CI run.
+
+You can also test the tool endpoints used by the workflow directly from your terminal:
+
+```bash
+# Fetch the menu JSON
+curl -sS https://gist.githubusercontent.com/Pradeepkarra1/770ee94f47281b8c952b744d3889ea00/raw/a6bdb41b0c7e1bda15c63ab8e7eb73dc9213b441/pizza_menu.json | jq '.' | head -n 20
+
+# Simulate creating an order (POST)
+curl -sS -H "Content-Type: application/json" \
+  -d '{"pizza_type":"Margherita","size":"Large","quantity":2,"customer_name":"Test User","delivery_address":"123 Main St","phone_number":"555-0123"}' \
+  https://httpbin.org/post | jq '.'
+
+# Simulate checking order status (GET)
+curl -sS "https://httpbin.org/get?order_id=12345" | jq '.'
+```
+
+Notes:
+- The workflow file in this repo is named `workflow.json` and can be imported directly.
+- Replace `httpbin.org` URLs in production with your real APIs that handle orders and status tracking.
+
+### Local Simulator
+
+A small CLI tool is provided to exercise the workflow tools locally:
+
+- Install dependencies:
+
+```bash
+python3 -m pip install -r requirements.txt --user
+```
+
+- Run the simulator:
+
+```bash
+# Print menu
+python scripts/simulate_agent.py menu
+
+# Create an order (POST)
+python scripts/simulate_agent.py create --pizza_type Margherita --size Large --quantity 2
+
+# Check a status (GET)
+python scripts/simulate_agent.py status --order_id 12345
+```
+
+The simulator attempts to use the workflow's configured endpoints (`httpbin.org`), and will fall back to `postman-echo.com` for transient server errors.
+
 4. **Configure Google Gemini Credentials**
    - Open the "Google Gemini Chat Model" node
    - Click "Create New Credential"
