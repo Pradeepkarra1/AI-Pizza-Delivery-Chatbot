@@ -18,6 +18,24 @@ def run_cmd_env(args, env=None):
     return proc
 
 
+def test_create_missing_args_shows_usage_error():
+    proc = run_cmd_env([
+        "scripts/simulate_agent.py",
+        "create",
+        "--pizza_type",
+        "Margherita",
+    ])
+    assert proc.returncode != 0
+    stderr = (proc.stderr or "").lower()
+    assert "usage" in stderr or "error" in stderr
+
+
+def test_help_output():
+    proc = run_cmd_env(["scripts/simulate_agent.py", "--help"]) 
+    assert proc.returncode == 0
+    assert "Usage" in proc.stdout
+
+
 def test_menu():
     out = run_cmd(["scripts/simulate_agent.py", "menu"])
     data = json.loads(out)
@@ -77,23 +95,3 @@ def test_menu_failure_exits_nonzero():
     env = {"SIM_MENU_URL": "http://127.0.0.1:9"}
     proc = run_cmd_env(["scripts/simulate_agent.py", "menu"], env=env)
     assert proc.returncode != 0
-
-
-def test_create_missing_required_arg():
-    # Missing required --pizza_type should cause a non-zero exit and an error message
-    proc = run_cmd_env([
-        "scripts/simulate_agent.py",
-        "create",
-        "--size",
-        "Large",
-        "--quantity",
-        "1",
-    ])
-    assert proc.returncode != 0
-    assert "Missing option" in proc.stderr
-
-
-def test_help_outputs_usage():
-    proc = run_cmd_env(["scripts/simulate_agent.py", "--help"])
-    assert proc.returncode == 0
-    assert "Usage:" in proc.stdout

@@ -6,12 +6,10 @@ on:
 
 jobs:
   smoke-tests:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [3.9, 3.10, 3.11, 3.12]
-      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,7 +19,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set PIP cache dir
+      - name: Set pip cache dir
         run: echo "PIP_CACHE_DIR=${{ runner.temp }}/pip-cache" >> $GITHUB_ENV
 
       - name: Cache pip
