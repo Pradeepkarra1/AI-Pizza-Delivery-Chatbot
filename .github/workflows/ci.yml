@@ -31,13 +31,10 @@ jobs:
           python -V || true
           ls -la
 
-      - name: Set pip cache dir
-        run: echo "PIP_CACHE_DIR=${{ runner.temp }}/pip-cache" >> $GITHUB_ENV
-
       - name: Cache pip
         uses: actions/cache@v4
         with:
-          path: ${{ env.PIP_CACHE_DIR }}
+          path: ${{ runner.temp }}/pip-cache
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-py${{ matrix.python-version }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
