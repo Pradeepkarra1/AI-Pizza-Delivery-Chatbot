@@ -196,6 +196,8 @@ n8n start
 
 ### Quick Local Tool Tests (without n8n)
 
+Small edit to trigger CI run.
+
 You can also test the tool endpoints used by the workflow directly from your terminal:
 
 ```bash
