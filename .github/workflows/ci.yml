@@ -24,6 +24,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Debug runner info
+        run: |
+          echo "Runner OS: $RUNNER_OS"
+          uname -a || true
+          python -V || true
+          ls -la
+
       - name: Set pip cache dir
         run: echo "PIP_CACHE_DIR=${{ runner.temp }}/pip-cache" >> $GITHUB_ENV
 
@@ -50,12 +57,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
-          python - <<'PY'
-          import ntpath
-          p = ntpath.join('C:\\', 'Users', 'Alice', 'Order')
-          assert p.startswith('C:')
-          print('Windows path check ok')
-          PY
+          python -c "import ntpath; p = ntpath.join('C:\\','Users','Alice','Order'); assert p.startswith('C:'); print('Windows path check ok')"
 
       - name: macOS-only path sanity check
         if: matrix.os == 'macos-latest'
