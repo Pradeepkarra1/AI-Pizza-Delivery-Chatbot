@@ -40,6 +40,21 @@ jobs:
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
 
+      - name: Show cache path (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          echo "Cache path evaluation: ${{ runner.temp }}/pip-cache"
+          echo "Runner OS: $RUNNER_OS"
+          if [ -d "${{ runner.temp }}/pip-cache" ]; then ls -la "${{ runner.temp }}/pip-cache"; else echo "cache dir does not exist yet"; fi
+
+      - name: Show cache path (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          Write-Host "Cache path evaluation: $env:TEMP\pip-cache"
+          Write-Host "Runner OS: $env:RUNNER_OS"
+          if (Test-Path "$env:TEMP\pip-cache") { Get-ChildItem "$env:TEMP\pip-cache" } else { Write-Host "cache dir does not exist yet" }
+
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
