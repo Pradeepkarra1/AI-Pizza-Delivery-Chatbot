@@ -44,3 +44,34 @@ jobs:
         timeout-minutes: 15
         run: |
           pytest -q
+
+      - name: Windows-only path sanity check
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          python - <<'PY'
+          import ntpath
+          p = ntpath.join('C:\\', 'Users', 'Alice', 'Order')
+          assert p.startswith('C:')
+          print('Windows path check ok')
+          PY
+
+      - name: macOS-only path sanity check
+        if: matrix.os == 'macos-latest'
+        run: |
+          python - <<'PY'
+          import posixpath
+          p = posixpath.join('/', 'home', 'alice', 'order')
+          assert p.startswith('/')
+          print('macOS path check ok')
+          PY
+
+      - name: Linux-only path sanity check
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python - <<'PY'
+          import posixpath
+          p = posixpath.join('/', 'var', 'tmp', 'order')
+          assert p.startswith('/')
+          print('Linux path check ok')
+          PY
